@@ -33,7 +33,9 @@ showMenu() {
     fi
     return
 }
-
+# error, si el path esta mal sigue pidiendo: "Ingrese la ruta de la carpeta: ", al ingresar una ruta valida find devuelve: "La ruta no es válida. Intente nuevamente: " x 
+# la cantidad de veces que se ingresa una ruta no valida
+# Permitir volver al menu principal
 routeRequest() {
     read -p "Ingrese la ruta de la carpeta: " tempPath
     while [ ! -d "$tempPath" ]; do
