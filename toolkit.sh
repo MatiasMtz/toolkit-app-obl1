@@ -8,7 +8,7 @@ path=""
 
 showMenu() {
     # Menú dependiendo de si la variable path está vacía o no
-    if [[ $path -eq "" ]]; then
+    if [[ -z $path ]]; then
         echo "*** MENÚ DE HERRAMIENTAS ***"
         echo "----------------"
         echo "1 >> Mostrar propiedades de una carpeta."
@@ -78,7 +78,7 @@ renameFiles() {
 		tempPath=$(routeRequest)
 	fi
 	for file in "$tempPath"/*; do
-		if [[ -f "$file" ]]; then
+		if [[ -f "$file" && "$(basename "$file")" != "toolkit.sh" ]]; then
 			mv "$file" "${file}bck"
 		fi
 	done
@@ -94,13 +94,13 @@ diskSummary() {
 	echo -e "$(df -h)\n"
     echo
     echo "Resumen del disco:"
-    used=$(df --block-size=1G | awk 'N3R>1 {used+=$3} END {print used " GB"}')
+    used=$(df --block-size=1G | awk 'NR>1 {used+=$3} END {print used " GB"}')
     avail=$(df --block-size=1G | awk 'NR>1 {avail+=$4} END {print avail " GB"}')
     echo "-- Espacio total utilizado: $used"
     echo "-- Espacio disponible: $avail"
     echo
     echo "-- Archivo mas grande del disco:"
-	echo -e "$(find / -type f -exec du -b {} + 2>/dev/null | sort -nr | head -n 1 | awk '{n=split($2, parts, "/"); print parts[n], "->", $1, "BYTES"}'))"
+	echo -e "$(find / -type f -exec du -b {} + 2>/dev/null | sort -nr | head -n 1 | awk '{n=split($2, parts, "/"); print parts[n], "->", $1, "BYTES"}')"
     echo "*****************"
     echo
 }
@@ -122,6 +122,8 @@ searchWord() {
     done
     echo
     echo "*****************"
+    echo "Buscando <'$word'> en la ruta <'$tempPath'>..."
+    echo "-----------------"
 	# ver awk man > flag -F y substr 
 	grep -r -n -w "$word" "$tempPath" 2>/dev/null | awk -F: '{ print "--", $1, "<Línea "$2">", "|",substr($0, index($0,$3)) }' || echo "No se encontró la palabra '$word'"
     echo "*****************"
@@ -135,7 +137,7 @@ showSystemReport() {
 	echo "-- Usuario actual: $(whoami)"
 	echo "-- La PC se encendió el: $(uptime -s | awk '{print $1}') a las $(uptime -s | awk '{print $2}')"
 	echo "-- Fecha del día de hoy: $(date '+%d-%m-%Y')"
-	echo "-- Hora actual: $(date '+%H-%M-%S')"
+	echo "-- Hora actual: $(date '+%H:%M:%S')"
     echo "*****************"
     echo
 }
@@ -155,7 +157,7 @@ saveURL() {
     if curl --head --silent --fail --max-time 5 "$url" > /dev/null; then
         echo "-- La URL es accesible."
     else
-        echo "La URL no es válida o el servidor no responde."
+        echo "Su URL no es accesible."
     fi
     echo
 }
@@ -163,43 +165,43 @@ saveURL() {
 # Establecer ruta predeterminada
 defaultPath() {
 	if [ -n "$path" ]; then
+        echo
+        echo "*****************"
         echo "Ruta predeterminada actual: '$path'"
         echo "¿Qué desea hacer?"
         echo "1) Modificar ruta"
         echo "2) Eliminar ruta"
         echo "3) Volver"
+        echo
         read -p "Seleccione una opción [1-3]: " feature
 		
 		case $feature in
             1)
-                read -p "Ingrese la nueva ruta de la carpeta: " tempPath
-                while [ ! -d "$tempPath" ]; do
-                    echo "La ruta no es válida. Intente nuevamente:"
-                    read -p "Ingrese la nueva ruta de la carpeta: " tempPath
-                done
-                path="$tempPath"
-                echo "Ruta actualizada: '$path'"
+                path=$(routeRequest "Ingrese su nueva carpeta predeterminada: ")
+                clear
+                echo "Ruta actualizada a: '$path'"
+                echo
                 ;;
             2)
                 path=""
+                clear
                 echo "Ruta eliminada."
+                echo
                 ;;
             3)
+                clear
                 return
                 ;;
             *)
                 echo "*** Opción no reconocida. Intente nuevamente. ***"
+                echo
                 ;;
             esac
 	else
-		read -p "Ingrese la ruta de la carpeta: " tempPath
-		while [ ! -d "$tempPath" ]; do
-			echo "La ruta no es válida. Intente nuevamente: "
-			read -p "Ingrese la ruta de la carpeta: " tempPath
-			echo
-		done
-		path="$tempPath"
+		path=$(routeRequest "Ingrese su carpeta predeterminada: ")
+        clear
 		echo "La ruta predeterminada a partir de ahora es: '$path'"
+        echo
 	fi
 }
 
