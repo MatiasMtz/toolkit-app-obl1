@@ -74,4 +74,4 @@ Este script fue desarrollado con fines didácticos para que el estudiante:
 - Genere scripts ejecutables fácilmente verificables.
 
 ## 📝 Licencia
-Este proyecto se distribuye con fines educativos. Puedes ser modificado libremente.
+Este proyecto se distribuye con fines educativos. Puede ser modificado libremente.
