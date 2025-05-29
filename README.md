@@ -52,9 +52,11 @@ Si se configura, las opciones 1, 2, 4 y 6 utilizarán esta ruta sin volver a ped
 1. El script debe tener permisos de ejecución:
    ```bash
    chmod +x toolkit.sh
+   ```
 2.  Ejecutar el script:
    ```bash
    ./toolkit.sh
+   ```
 
 ##  🛠 Requisitos
 
