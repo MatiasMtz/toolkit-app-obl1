@@ -49,15 +49,15 @@ showProperties() {
     else
         tempPath=$(routeRequest)
     fi
-        echo
-        echo "*****************"
-        echo "PROPIEDADES DE LA CARPETA <$tempPath>"
-        echo "-- Archivos: $(find "$tempPath" -maxdepth 1 -type f | wc -l)"
-        echo "-- Archivos en subcarpetas: $(find "$tempPath" -mindepth 2 -type f | wc -l)"
-        echo "-- Archivo de mayor tamaño en carpeta y subcarpetas: $(find "$tempPath" -type f -printf '%s %p\n' | sort -nr | head -n 1 | awk '{print $2, "->", $1, "Bytes"}')"
-        echo "-- Archivo de menor tamaño en carpeta y subcarpetas: $(find "$tempPath" -type f -printf '%s %p\n' | sort -n | head -n 1 | awk '{print $2, "->", $1, "Bytes"}')"
-        echo "*****************"
-        echo
+    clear
+    echo "*****************"
+    echo "PROPIEDADES DE LA CARPETA <$tempPath>"
+    echo "-- Archivos: $(find "$tempPath" -maxdepth 1 -type f | wc -l)"
+    echo "-- Archivos en subcarpetas: $(find "$tempPath" -mindepth 2 -type f | wc -l)"
+    echo "-- Archivo de mayor tamaño en carpeta y subcarpetas: $(find "$tempPath" -type f -printf '%s %p\n' | sort -nr | head -n 1 | awk '{print $2, "->", $1, "Bytes"}')"
+    echo "-- Archivo de menor tamaño en carpeta y subcarpetas: $(find "$tempPath" -type f -printf '%s %p\n' | sort -n | head -n 1 | awk '{print $2, "->", $1, "Bytes"}')"
+    echo "*****************"
+    echo
 }
 
 renameFiles() {
@@ -76,7 +76,6 @@ renameFiles() {
 }
 
 diskSummary() {
-    echo
     echo "*****************"
     echo "-- Resumen del estado del disco duro:"
 	echo -e "$(df -h)\n"
@@ -87,8 +86,9 @@ diskSummary() {
     echo "-- Espacio total utilizado: $used"
     echo "-- Espacio disponible: $avail"
     echo
-    echo "-- Archivo mas grande del disco:"
+    echo "-- Calculando archivo mas grande del disco..."
 	echo "$(find / -type f -printf '%s %p\n' 2>/dev/null | sort -nr | head -n 1 | awk '{print $2, "->", $1 / 1024 ** 3, "GB"}')"
+    echo "* Algunos archivos pueden no ser accesibles debido a permisos de usuario o restricciones del sistema (procesos en ejecución, archivos protegidos, etc.)."
     echo "*****************"
     echo
 }
@@ -106,17 +106,20 @@ searchWord() {
         echo
     done
     clear
-    echo
     echo "*****************"
     echo "Buscando '$word' en la ruta '$tempPath'..."
     echo "-----------------"
-	grep -nw "$word" "$tempPath"/* 2>/dev/null | awk -F: '{ print ">>", $1, "<Línea "$2">", "|", $3 }' || echo "No se encontró la palabra '$word'"
+	results=$(grep -nw "$word" "$tempPath"/* 2>/dev/null)
+    if [ -n "$results" ]; then
+        echo "$results" | awk -F: '{ print ">>", $1, "<Línea "$2">", "|", $3 }'
+    else
+        echo "No se encontró la palabra '$word' en los archivos de la carpeta."
+    fi
     echo "*****************"
     echo
 }
 
 showSystemReport() {
-    echo
     echo "*****************"
 	echo "-- Usuario actual: $(whoami)"
 	echo "-- La PC se encendió el: $(uptime -s | awk '{print $1}') a las $(uptime -s | awk '{print $2}')"
@@ -129,14 +132,15 @@ showSystemReport() {
 saveURL() {
 	read -p "Ingrese la URL que desea guardar: " url
     tempPath=$(routeRequest "Ingrese la ruta de la carpeta donde quiera guardar su URL: ")
-
 	echo "$url" > "$tempPath/paginaweb.txt"
-    echo
+    clear
     echo "*****************"
+    if [[ "${tempPath: -1}" == "/" ]]; then
+        tempPath="${tempPath: 0:-1}"
+    fi
     echo "La URL se guardó correctamente en $tempPath/paginaweb.txt"
     echo "*****************"
     echo
-	
 	echo "* Verificando la URL... "
     if curl --head --silent --fail --max-time 5 "$url" > /dev/null; then
         echo "-- Su URL es accesible."
